@@ -5,13 +5,13 @@ Smart Glasses with Proactive Speech Recognition, Context Awareness, and Real-Tim
 
 ## Features
 
-- 🎤 Live audio capture from dual BLE-connected G1 smart glasses
-- 🧠 Speech-to-text using `whisper`
-- 📊 Context recognition using lightweight NLP (`distilbert-base`)
-- 🤖 OpenAI GPT-4o API integration (o4-mini)
-- 💾 Local caching of answers
-- 🚨 Fallback responses if the network/API fails
-- 👓 Visual display to both left and right arms of G1
+- Live audio capture from dual BLE-connected G1 smart glasses
+- Speech-to-text using `whisper`
+- Context recognition using lightweight NLP (`distilbert-base`)
+- OpenAI GPT-4o API integration (o4-mini)
+- Local caching of answers
+- Fallback responses if the network/API fails
+- Visual display to both left and right arms of G1
 
 
 ## Requirements
@@ -86,7 +86,3 @@ If OpenAI API call fails (e.g., no internet):
 - Add offline model support for disconnected mode
 - TTL (expiration) support for cache files
 - Multilingual display integration
-
-## License
-
-MIT License 
