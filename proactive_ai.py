@@ -3,6 +3,10 @@ import lc3_decoder   # To handle LC3 audio
 import whisper       # Speech-to-text
 import nlp_model     # Context analysis
 import time
+import openai        # Import OpenAI SDK
+import hashlib
+import os
+import json
 
 # Connect to G1’s dual BLE (left and right arms)
 ble_left = bluetooth_ble.connect("G1_LEFT_ARM")
@@ -43,7 +47,7 @@ class ProactiveAI:
             # Analyze context
             context = self.nlp.predict_intent(text)
             if context and context["confidence"] > 0.95:
-                # Fake a verified answer (real code would query a model)
+                # Get and display answer
                 answer = self.get_answer(context)
                 if answer:
                     self.display_answer(answer)
@@ -54,9 +58,48 @@ class ProactiveAI:
         ble_right.send_command([0x0E, 0x01])  # Re-enable mic
 
     def get_answer(self, context):
-        # Simplified: pretend we verified it (real code needs API)
+        # Use OpenAI to get a real answer from the context with caching and fallback
         if context["intent"] == "question":
-            return f"Answer to {context['entities']['topic']}"
+            topic = context['entities']['topic']
+            prompt = f"User asked: {topic}\nProvide a helpful, concise response."
+            cache_key = hashlib.md5(prompt.encode()).hexdigest()
+            cache_path = os.path.join("cache", f"{cache_key}.json")
+
+            # Try to read from cache
+            if os.path.exists(cache_path):
+                try:
+                    with open(cache_path, "r") as f:
+                        cached = json.load(f)
+                        return cached.get("answer")
+                except Exception as e:
+                    print(f"Failed to read cache: {e}")
+
+            # If not cached, query OpenAI
+            try:
+                response = openai.ChatCompletion.create(
+                    model="gpt-4o",  # o4-mini or similar lightweight model
+                    messages=[
+                        {"role": "system", "content": "You are an assistant for smart glasses. Keep answers short and useful."},
+                        {"role": "user", "content": prompt},
+                    ],
+                    temperature=0.5,
+                    max_tokens=100
+                )
+
+                answer_text = response.choices[0].message.content.strip()
+
+                # Cache the result
+                os.makedirs("cache", exist_ok=True)
+                with open(cache_path, "w") as f:
+                    json.dump({"answer": answer_text}, f)
+
+                return answer_text
+
+            except Exception as e:
+                print(f"OpenAI API error: {e}")
+                # Fallback answer
+                return f"Sorry, I couldn't get a full answer right now. Here's what I understood: {topic}"
+
         return None
 
     def display_answer(self, answer):
